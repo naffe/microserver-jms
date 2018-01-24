@@ -1,4 +1,4 @@
-group 'naffe'
+group 'io.naffe'
 version '1.1-SNAPSHOT'
 
 buildscript {

@@ -204,7 +204,6 @@
 
 package microserver.jms
 
-import microserver.jms.data.HelpersKt
 import microserver.jms.data.JmsSimulationMessageByte
 import microserver.jms.data.JmsSimulationMessageMap
 import microserver.jms.data.JmsSimulationMessageObject
@@ -215,18 +214,19 @@ import spock.lang.Specification
 
 import java.util.concurrent.TimeUnit
 
-import static jmssimulator.data.HelpersKt.*
+import static microserver.jms.data.HelpersKt.*
 
 class ActiveMQEmbeddedTestSpecification extends Specification {
 
     def "Send single text message on queue"() {
         setup:
-        def embeddedServer = HelpersKt.jmsSimulator(HelpersKt.onPort(31222))
-        def receivingClient = HelpersKt.jmsSimulator(HelpersKt.withoutEmbeddedServer("tcp://127.0.0.1:31222"))
+        def randomPort = TestingUtils.randomPort()
+        def embeddedServer = jmsSimulator(onPort(randomPort))
+        def receivingClient = jmsSimulator(withoutEmbeddedServer("tcp://127.0.0.1:$randomPort"))
         def queueName = TestingUtils.queueName()
         def randomTextToSend = RandomStringUtils.randomAlphabetic(12)
         when: "We send the random text onto the queue"
-        embeddedServer.sendToQueue(queueName, HelpersKt.textMessage(randomTextToSend))
+        embeddedServer.sendToQueue(queueName, textMessage(randomTextToSend))
         and: "we attach a separate client to the queue to get the message from the queue"
         JmsSimulationMessageText message = receivingClient.messageFromQueueOfType(queueName, JmsSimulationMessageText.class)
         then: "Make sure all the properties are correct"
@@ -240,12 +240,12 @@ class ActiveMQEmbeddedTestSpecification extends Specification {
     def "Send single byte message on queue"() {
         setup:
         def randomPort = TestingUtils.randomPort()
-        def embeddedServer = HelpersKt.jmsSimulator(HelpersKt.onPort(randomPort))
-        def receivingClient = HelpersKt.jmsSimulator(HelpersKt.withoutEmbeddedServer("tcp://127.0.0.1:$randomPort"))
+        def embeddedServer = jmsSimulator(onPort(randomPort))
+        def receivingClient = jmsSimulator(withoutEmbeddedServer("tcp://127.0.0.1:$randomPort"))
         def queueName = TestingUtils.queueName()
         def randomByteToSend = RandomUtils.nextBytes(255)
         when: "We send the random byte array onto the queue"
-        embeddedServer.sendToQueue(queueName, HelpersKt.byteMessage(randomByteToSend))
+        embeddedServer.sendToQueue(queueName, byteMessage(randomByteToSend))
         and: "we attach a separate client to the queue to get the message from the queue"
         JmsSimulationMessageByte message = receivingClient.messageFromQueueOfType(queueName, JmsSimulationMessageByte.class)
         then: "Make sure all the properties are correct"
@@ -258,12 +258,12 @@ class ActiveMQEmbeddedTestSpecification extends Specification {
     def "Send single object message on queue"() {
         setup:
         def randomPort = TestingUtils.randomPort()
-        def embeddedServer = HelpersKt.jmsSimulator(HelpersKt.onPort(randomPort))
-        def receivingClient = HelpersKt.jmsSimulator(HelpersKt.withoutEmbeddedServer("tcp://127.0.0.1:$randomPort"))
+        def embeddedServer = jmsSimulator(onPort(randomPort))
+        def receivingClient = jmsSimulator(withoutEmbeddedServer("tcp://127.0.0.1:$randomPort"))
         def queueName = TestingUtils.queueName()
         def randomObjectToSend = RandomStringUtils.random(211)
         when: "We send the random object onto the queue"
-        embeddedServer.sendToQueue(queueName, HelpersKt.objectMessage(randomObjectToSend))
+        embeddedServer.sendToQueue(queueName, objectMessage(randomObjectToSend))
         and: "we attach a separate client to the queue to get the message from the queue"
         JmsSimulationMessageObject message = receivingClient.messageFromQueueOfType(queueName, JmsSimulationMessageObject.class)
         then: "Make sure all the properties are correct"
@@ -276,12 +276,12 @@ class ActiveMQEmbeddedTestSpecification extends Specification {
     def "Send single map message on queue"() {
         setup:
         def randomPort = TestingUtils.randomPort()
-        def embeddedServer = HelpersKt.jmsSimulator(HelpersKt.onPort(randomPort))
-        def receivingClient = HelpersKt.jmsSimulator(HelpersKt.withoutEmbeddedServer("tcp://127.0.0.1:$randomPort"))
+        def embeddedServer = jmsSimulator(onPort(randomPort))
+        def receivingClient = jmsSimulator(withoutEmbeddedServer("tcp://127.0.0.1:$randomPort"))
         def queueName = TestingUtils.queueName()
         def randomMapToSend = TestingUtils.randomMap()
         when: "We send the random object onto the queue"
-        embeddedServer.sendToQueue(queueName, HelpersKt.mapMessage(randomMapToSend))
+        embeddedServer.sendToQueue(queueName, mapMessage(randomMapToSend))
         and: "we attach a separate client to the queue to get the message from the queue"
         JmsSimulationMessageMap message = receivingClient.messageFromQueueOfType(queueName, JmsSimulationMessageMap.class)
         then: "Make sure all the properties are correct"
@@ -293,16 +293,16 @@ class ActiveMQEmbeddedTestSpecification extends Specification {
 
     def "Send multiple text messages on queue"() {
         setup:
-        def embeddedServer = HelpersKt.jmsSimulator(HelpersKt.onPort(31222))
-        def receivingClient = HelpersKt.jmsSimulator(HelpersKt.withoutEmbeddedServer("tcp://127.0.0.1:31222"))
+        def embeddedServer = jmsSimulator(onPort(31222))
+        def receivingClient = jmsSimulator(withoutEmbeddedServer("tcp://127.0.0.1:31222"))
         def queueName = TestingUtils.queueName()
         def randomMessageCount = RandomUtils.nextInt(5, 50)
         List randomString = TestingUtils.randomStringList(randomMessageCount);
-        def messages = HelpersKt.textMessages(randomString)
+        def messages = textMessages(randomString)
         when: "We send the random text onto the queue"
         embeddedServer.sendToQueue(queueName, messages)
         and: "we attach a separate client to the queue to get the message from the queue"
-        List<JmsSimulationMessageText> texts = receivingClient.messagesFromQueueOfType(queueName, JmsSimulationMessageText.class, HelpersKt.onMessageCount(randomMessageCount))
+        List<JmsSimulationMessageText> texts = receivingClient.messagesFromQueueOfType(queueName, JmsSimulationMessageText.class, onMessageCount(randomMessageCount))
         then: "Make sure all the properties are correct"
         texts.collect({ it.content }) == messages.collect({ it.content })
         cleanup:
@@ -313,16 +313,16 @@ class ActiveMQEmbeddedTestSpecification extends Specification {
 
     def "Send multiple text messages on queue with timeout"() {
         setup:
-        def embeddedServer = HelpersKt.jmsSimulator(HelpersKt.onPort(31222))
-        def receivingClient = HelpersKt.jmsSimulator(HelpersKt.withoutEmbeddedServer("tcp://127.0.0.1:31222"))
+        def embeddedServer = jmsSimulator(onPort(31222))
+        def receivingClient = jmsSimulator(withoutEmbeddedServer("tcp://127.0.0.1:31222"))
         def queueName = TestingUtils.queueName()
         def randomMessageCount = RandomUtils.nextInt(5, 50)
         List randomString = TestingUtils.randomStringList(randomMessageCount);
-        def messages = HelpersKt.textMessages(randomString)
+        def messages = textMessages(randomString)
         when: "We send the random text onto the queue"
         embeddedServer.sendToQueue(queueName, messages)
         and: "we attach a separate client to the queue to get the message from the queue"
-        List<JmsSimulationMessageText> texts = receivingClient.messagesFromQueueOfType(queueName, JmsSimulationMessageText.class, HelpersKt.onTimeOut(5, TimeUnit.SECONDS))
+        List<JmsSimulationMessageText> texts = receivingClient.messagesFromQueueOfType(queueName, JmsSimulationMessageText.class, onTimeOut(5, TimeUnit.SECONDS))
         then: "Make sure all the properties are correct"
         texts.size() == messages.size()
         texts.collect({ it.content }) == messages.collect({ it.content })
